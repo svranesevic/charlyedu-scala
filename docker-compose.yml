@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+#  theservice:
+#    build:
+#      dockerfile: Dockerfile
+#      context: ./
+#    ports:
+#      - "3000:3000"
+#    environment:
+#      - PORT=3000
+#      - TEMPERATURE_SERVICE=http://temperature/
+#      - WIND_SPEED_SERVICE=http://windspeed/
+#    restart: unless-stopped
+
+  temperature:
+    image: pluspeterpublic/temperature:latest
+    ports:
+      - "8000:80"
+    environment:
+      - PORT=80
+    restart: unless-stopped
+
+  windspeed:
+    image: pluspeterpublic/windspeed:latest
+    ports:
+      - "8080:80"
+    environment:
+      - PORT=80
+    restart: unless-stopped
