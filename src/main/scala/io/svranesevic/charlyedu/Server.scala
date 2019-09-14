@@ -23,18 +23,18 @@ object Server extends IOApp {
 
   private val temperatureRoutes = TemperatureEndpoint.endpoint.toRoutes {
     case (from, to) =>
-      temperatureProvider
-        .forPeriod(from, to)
-        .map(_.map(_.into[TemperatureEndpoint.Temperature].transform))
-        .map(_.asRight[ErrorResponse])
+      for {
+        temperatures <- temperatureProvider.forPeriod(from, to)
+        dto = temperatures.map(_.into[TemperatureEndpoint.Temperature].transform)
+      } yield dto.asRight[ErrorResponse]
   }
 
   private val windSpeedRoutes = WindSpeedEndpoint.endpoint.toRoutes {
     case (from, to) =>
-      windsSpeedProvider
-        .forPeriod(from, to)
-        .map(_.map(_.into[WindSpeedEndpoint.WindSpeed].transform))
-        .map(_.asRight[ErrorResponse])
+      for {
+        windSpeeds <- windsSpeedProvider.forPeriod(from, to)
+        dto = windSpeeds.map(_.into[WindSpeedEndpoint.WindSpeed].transform)
+      } yield dto.asRight[ErrorResponse]
   }
 
   private val router = Router("/" -> temperatureRoutes, "/" -> windSpeedRoutes).orNotFound
