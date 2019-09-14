@@ -12,7 +12,5 @@ object Config {
 
   implicit def camelCaseHint[T]: ProductHint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
 
-  def build: Config = {
-    ConfigSource.default.loadOrThrow[Config]
-  }
+  def build: Config = ConfigSource.default.loadOrThrow[Config]
 }
