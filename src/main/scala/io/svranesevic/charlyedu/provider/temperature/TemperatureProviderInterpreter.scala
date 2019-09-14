@@ -2,23 +2,19 @@ package io.svranesevic.charlyedu.provider.temperature
 
 import java.time.{ LocalDate, LocalTime, ZoneId, ZonedDateTime }
 
-import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{ Concurrent, ContextShift }
-import cats.implicits._
-import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import com.softwaremill.sttp.asynchttpclient.monix.AsyncHttpClientMonixBackend
 import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
 import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderAlgebra._
+import monix.catnap.Semaphore
+import monix.eval.Task
 import tapir._
 import tapir.client.sttp._
 import tapir.json.circe._
 
 import scala.language.higherKinds
 
-class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(implicit F: Concurrent[F],
-                                                                                 P: Parallel[F],
-                                                                                 cs: ContextShift[F])
-    extends TemperatureProviderAlgebra[F, List] {
+class TemperatureProviderInterpreter(uri: Uri, semaphore: Task[Semaphore[Task]])
+    extends TemperatureProviderAlgebra[Task, List] {
 
   import TemperatureProviderInterpreter._
   import io.svranesevic.charlyedu.codec.Implicits._
@@ -31,9 +27,9 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
       .out(jsonBody[Temperature])
       .toSttpRequest(uri)
 
-  implicit private val backend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
+  implicit private val backend: SttpBackend[Task, Nothing] = AsyncHttpClientMonixBackend()
 
-  def forDay(at: ZonedDateTime): F[Temperature] =
+  def forDay(at: ZonedDateTime): Task[Temperature] =
     for {
       s <- semaphore
 
@@ -44,28 +40,30 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
       }
 
       temperature <- response.body match {
-        case Left(cause)        => F.raiseError[Temperature](new Throwable(s"Could not decode response body: $cause"))
-        case Right(Left(cause)) => F.raiseError[Temperature](new Throwable(s"Could not obtain temperature: $cause"))
-        case Right(Right(temp)) => F.pure[Temperature](temp)
+        case Left(cause)        => Task.raiseError[Temperature](new Throwable(s"Could not decode response body: $cause"))
+        case Right(Left(cause)) => Task.raiseError[Temperature](new Throwable(s"Could not obtain temperature: $cause"))
+        case Right(Right(temp)) => Task.pure[Temperature](temp)
       }
     } yield temperature
 
-  def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[Temperature]] = {
-    val between =
+  def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): Task[List[Temperature]] = {
+    val days =
       inclusiveFrom.toLocalDate.toEpochDay
         .until(inclusiveTo.plusDays(1).toLocalDate.toEpochDay)
         .map(LocalDate.ofEpochDay)
         .map(ZonedDateTime.of(_, LocalTime.MIDNIGHT, ZoneId.of("UTC")))
         .toList
 
-    between.parTraverse(forDay)
+    for {
+      temperatures <- Task.wander(days)(forDay)
+    } yield temperatures.sortBy(_.date.toEpochSecond)
   }
 }
 
 object TemperatureProviderInterpreter {
 
-  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri, concurrencyLimit: Int) =
-    new TemperatureProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit))
+  def apply(uri: Uri, concurrencyLimit: Int) =
+    new TemperatureProviderInterpreter(uri, Semaphore[Task](concurrencyLimit))
 
   import io.circe.generic.semiauto.{ deriveDecoder, deriveEncoder }
   import io.circe.{ Decoder, Encoder }
