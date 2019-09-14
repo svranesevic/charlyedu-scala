@@ -43,7 +43,7 @@ class WindSpeedService[F[_]](uri: Uri, blocker: Blocker)(implicit F: Async[F], P
       .flatMap {
         case Right(Right(ws: WindSpeed)) => F.pure(ws)
         case Left(cause) => F.raiseError(new Throwable(s"Could not decode response body: $cause"))
-        case Right(Left(cause)) => F.raiseError(new Throwable(s"Could not obtain temperature: $cause"))
+        case Right(Left(cause)) => F.raiseError(new Throwable(s"Could not obtain wind speed: $cause"))
       }
   }
 

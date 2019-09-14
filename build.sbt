@@ -9,7 +9,6 @@ lazy val root = (project in file("."))
         "org.http4s" %% "http4s-blaze-client" % "0.20.0",
         "org.http4s" %% "http4s-circe" % "0.20.0",
         "org.http4s" %% "http4s-dsl" % "0.20.0",
-        "io.monix" %% "monix" % "3.0.0",
         "org.typelevel" %% "cats-effect" % "2.0.0",
         "com.softwaremill.tapir" %% "tapir-http4s-server" % "0.11.0",
         "com.softwaremill.tapir" %% "tapir-core" % "0.11.0",

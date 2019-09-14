@@ -9,5 +9,4 @@ object ErrorResponse {
 
   implicit val decoder: Decoder[ErrorResponse] = deriveDecoder
   implicit val encoder: Encoder[ErrorResponse] = deriveEncoder
-
 }
