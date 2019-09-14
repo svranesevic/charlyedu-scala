@@ -36,16 +36,17 @@ class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(i
   def forDay(day: ZonedDateTime): F[WindSpeed] =
     for {
       s <- semaphore
-      windSpeed <- s.withPermit {
+
+      response <- s.withPermit {
         windSpeedRequest
           .apply(day)
           .send()
-          .map(_.body)
-          .flatMap {
-            case Left(cause)        => F.raiseError[WindSpeed](new Throwable(s"Could not decode response body: $cause"))
-            case Right(Left(cause)) => F.raiseError[WindSpeed](new Throwable(s"Could not obtain temperature: $cause"))
-            case Right(Right(temp)) => F.pure[WindSpeed](temp)
-          }
+      }
+
+      windSpeed <- response.body match {
+        case Left(cause)        => F.raiseError[WindSpeed](new Throwable(s"Could not decode response body: $cause"))
+        case Right(Left(cause)) => F.raiseError[WindSpeed](new Throwable(s"Could not obtain temperature: $cause"))
+        case Right(Right(temp)) => F.pure[WindSpeed](temp)
       }
     } yield windSpeed
 

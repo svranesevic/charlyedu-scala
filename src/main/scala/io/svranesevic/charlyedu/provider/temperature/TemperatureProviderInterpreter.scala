@@ -36,16 +36,17 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
   def forDay(at: ZonedDateTime): F[Temperature] =
     for {
       s <- semaphore
-      temperature <- s.withPermit {
+
+      response <- s.withPermit {
         temperatureRequest
           .apply(at)
           .send()
-          .map(_.body)
-          .flatMap {
-            case Left(cause)        => F.raiseError[Temperature](new Throwable(s"Could not decode response body: $cause"))
-            case Right(Left(cause)) => F.raiseError[Temperature](new Throwable(s"Could not obtain temperature: $cause"))
-            case Right(Right(temp)) => F.pure[Temperature](temp)
-          }
+      }
+
+      temperature <- response.body match {
+        case Left(cause)        => F.raiseError[Temperature](new Throwable(s"Could not decode response body: $cause"))
+        case Right(Left(cause)) => F.raiseError[Temperature](new Throwable(s"Could not obtain temperature: $cause"))
+        case Right(Right(temp)) => F.pure[Temperature](temp)
       }
     } yield temperature
 
