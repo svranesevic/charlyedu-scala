@@ -7,9 +7,8 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{ Concurrent, ContextShift }
 import cats.implicits._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend._
 import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
-import WindSpeedProviderAlgebra._
+import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderAlgebra._
 import tapir._
 import tapir.client.sttp._
 import tapir.json.circe._
@@ -35,15 +34,20 @@ class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(i
   implicit private val backend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
 
   def forDay(day: ZonedDateTime): F[WindSpeed] =
-    windSpeedRequest
-      .apply(day)
-      .send()
-      .map(_.body)
-      .flatMap {
-        case Right(Right(ws: WindSpeed)) => F.pure(ws)
-        case Left(cause)                 => F.raiseError(new Throwable(s"Could not decode response body: $cause"))
-        case Right(Left(cause))          => F.raiseError(new Throwable(s"Could not obtain wind speed: $cause"))
+    for {
+      s <- semaphore
+      windSpeed <- s.withPermit {
+        windSpeedRequest
+          .apply(day)
+          .send()
+          .map(_.body)
+          .flatMap {
+            case Left(cause)        => F.raiseError[WindSpeed](new Throwable(s"Could not decode response body: $cause"))
+            case Right(Left(cause)) => F.raiseError[WindSpeed](new Throwable(s"Could not obtain temperature: $cause"))
+            case Right(Right(temp)) => F.pure[WindSpeed](temp)
+          }
       }
+    } yield windSpeed
 
   def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[WindSpeed]] = {
     val between =
@@ -53,9 +57,7 @@ class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(i
         .map(ZonedDateTime.of(_, LocalTime.MIDNIGHT, ZoneId.of("UTC")))
         .toList
 
-    semaphore.flatMap { s =>
-      between.parTraverse(at => s.withPermit(forDay(at)))
-    }
+    between.parTraverse(forDay)
   }
 }
 

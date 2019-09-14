@@ -4,12 +4,11 @@ import java.time.{ LocalDate, LocalTime, ZoneId, ZonedDateTime }
 
 import cats.Parallel
 import cats.effect.concurrent.Semaphore
-import cats.effect.{ Blocker, Concurrent, ContextShift }
+import cats.effect.{ Concurrent, ContextShift }
 import cats.implicits._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend._
 import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
-import TemperatureProviderAlgebra._
+import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderAlgebra._
 import tapir._
 import tapir.client.sttp._
 import tapir.json.circe._
@@ -21,8 +20,8 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
                                                                                  cs: ContextShift[F])
     extends TemperatureProviderAlgebra[F, List] {
 
-  import io.svranesevic.charlyedu.codec.Implicits._
   import TemperatureProviderInterpreter._
+  import io.svranesevic.charlyedu.codec.Implicits._
 
   private val temperatureRequest: ZonedDateTime => Request[Either[String, Temperature], Nothing] =
     endpoint.get
@@ -35,15 +34,20 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
   implicit private val backend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
 
   def forDay(at: ZonedDateTime): F[Temperature] =
-    temperatureRequest
-      .apply(at)
-      .send()
-      .map(_.body)
-      .flatMap {
-        case Right(Right(temp: Temperature)) => F.pure(temp)
-        case Left(cause)                     => F.raiseError(new Throwable(s"Could not decode response body: $cause"))
-        case Right(Left(cause))              => F.raiseError(new Throwable(s"Could not obtain temperature: $cause"))
+    for {
+      s <- semaphore
+      temperature <- s.withPermit {
+        temperatureRequest
+          .apply(at)
+          .send()
+          .map(_.body)
+          .flatMap {
+            case Left(cause)        => F.raiseError[Temperature](new Throwable(s"Could not decode response body: $cause"))
+            case Right(Left(cause)) => F.raiseError[Temperature](new Throwable(s"Could not obtain temperature: $cause"))
+            case Right(Right(temp)) => F.pure[Temperature](temp)
+          }
       }
+    } yield temperature
 
   def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[Temperature]] = {
     val between =
@@ -53,9 +57,7 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
         .map(ZonedDateTime.of(_, LocalTime.MIDNIGHT, ZoneId.of("UTC")))
         .toList
 
-    semaphore.flatMap { s =>
-      between.parTraverse(at => s.withPermit(forDay(at)))
-    }
+    between.parTraverse(forDay)
   }
 }
 
