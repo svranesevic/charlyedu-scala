@@ -33,7 +33,7 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
 
   implicit private val backend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
 
-  def forDay(at: ZonedDateTime): F[Temperature] =
+  override def forDay(at: ZonedDateTime): F[Temperature] =
     for {
       s <- semaphore
 
@@ -50,7 +50,7 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
       }
     } yield temperature
 
-  def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[Temperature]] = {
+  override def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[Temperature]] = {
     val between =
       inclusiveFrom.toLocalDate.toEpochDay
         .until(inclusiveTo.plusDays(1).toLocalDate.toEpochDay)

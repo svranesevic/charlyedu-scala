@@ -33,7 +33,7 @@ class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(i
 
   implicit private val backend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
 
-  def forDay(day: ZonedDateTime): F[WindSpeed] =
+  override def forDay(day: ZonedDateTime): F[WindSpeed] =
     for {
       s <- semaphore
 
@@ -50,7 +50,7 @@ class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(i
       }
     } yield windSpeed
 
-  def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[WindSpeed]] = {
+  override def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[WindSpeed]] = {
     val between =
       inclusiveFrom.toLocalDate.toEpochDay
         .until(inclusiveTo.plusDays(1).toLocalDate.toEpochDay)
