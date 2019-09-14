@@ -33,13 +33,13 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
 
   implicit private val backend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
 
-  override def forDay(at: ZonedDateTime): F[Temperature] =
+  override def forDay(day: ZonedDateTime): F[Temperature] =
     for {
       s <- semaphore
 
       response <- s.withPermit {
         temperatureRequest
-          .apply(at)
+          .apply(day)
           .send()
       }
 
