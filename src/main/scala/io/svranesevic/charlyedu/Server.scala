@@ -1,7 +1,5 @@
 package io.svranesevic.charlyedu
 
-import java.util.concurrent.Executors
-
 import cats.effect.{ IO, _ }
 import cats.implicits._
 import io.scalaland.chimney.dsl._
@@ -13,19 +11,15 @@ import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import tapir.server.http4s._
 
-import scala.concurrent.ExecutionContext
-
 object Server extends IOApp {
-
-  implicit val blockingEc: ExecutionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
 
   private val config = Config.build
 
   private val windsSpeedProvider =
-    WindSpeedProviderInterpreter[IO](config.windSpeedService, 200, Blocker.liftExecutionContext(blockingEc))
+    WindSpeedProviderInterpreter[IO](config.windSpeedService, 10000)
 
   private val temperatureProvider =
-    TemperatureProviderInterpreter[IO](config.temperatureService, 200, Blocker.liftExecutionContext(blockingEc))
+    TemperatureProviderInterpreter[IO](config.temperatureService, 10000)
 
   private val temperatureRoutes = TemperatureEndpoint.endpoint.toRoutes {
     case (from, to) =>

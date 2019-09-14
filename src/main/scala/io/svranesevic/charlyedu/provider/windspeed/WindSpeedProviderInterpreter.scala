@@ -4,7 +4,7 @@ import java.time.{ LocalDate, LocalTime, ZoneId, ZonedDateTime }
 
 import cats.Parallel
 import cats.effect.concurrent.Semaphore
-import cats.effect.{ Blocker, Concurrent, ContextShift }
+import cats.effect.{ Concurrent, ContextShift }
 import cats.implicits._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend._
@@ -14,12 +14,11 @@ import tapir._
 import tapir.client.sttp._
 import tapir.json.circe._
 
-import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
 
-class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]], b: Blocker)(implicit F: Concurrent[F],
-                                                                                           P: Parallel[F],
-                                                                                           cs: ContextShift[F])
+class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(implicit F: Concurrent[F],
+                                                                               P: Parallel[F],
+                                                                               cs: ContextShift[F])
     extends WindSpeedProviderAlgebra[F, List] {
 
   import WindSpeedProviderInterpreter._
@@ -55,17 +54,15 @@ class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]], b
         .toList
 
     semaphore.flatMap { s =>
-      between.parTraverse(at => s.withPermit(b.blockOn(forDay(at))))
+      between.parTraverse(at => s.withPermit(forDay(at)))
     }
   }
 }
 
 object WindSpeedProviderInterpreter {
 
-  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri, concurrencyLimit: Int, b: Blocker)(
-      implicit blockEc: ExecutionContext
-  ) =
-    new WindSpeedProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit), b)
+  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri, concurrencyLimit: Int) =
+    new WindSpeedProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit))
 
   import io.circe.generic.semiauto.{ deriveDecoder, deriveEncoder }
   import io.circe.{ Decoder, Encoder }

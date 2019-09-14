@@ -14,12 +14,11 @@ import tapir._
 import tapir.client.sttp._
 import tapir.json.circe._
 
-import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
 
-class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]], b: Blocker)(implicit F: Concurrent[F],
-                                                                                             P: Parallel[F],
-                                                                                             cs: ContextShift[F])
+class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(implicit F: Concurrent[F],
+                                                                                 P: Parallel[F],
+                                                                                 cs: ContextShift[F])
     extends TemperatureProviderAlgebra[F, List] {
 
   import io.svranesevic.charlyedu.codec.Implicits._
@@ -55,17 +54,15 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]],
         .toList
 
     semaphore.flatMap { s =>
-      between.parTraverse(at => s.withPermit(b.blockOn(forDay(at))))
+      between.parTraverse(at => s.withPermit(forDay(at)))
     }
   }
 }
 
 object TemperatureProviderInterpreter {
 
-  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri, concurrencyLimit: Int, b: Blocker)(
-      implicit blockEc: ExecutionContext
-  ) =
-    new TemperatureProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit), b)
+  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri, concurrencyLimit: Int) =
+    new TemperatureProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit))
 
   import io.circe.generic.semiauto.{ deriveDecoder, deriveEncoder }
   import io.circe.{ Decoder, Encoder }
