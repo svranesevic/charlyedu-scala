@@ -1,4 +1,6 @@
 lazy val root = (project in file("."))
+  .enablePlugins(JavaAppPackaging, DockerPlugin)
+  .settings(dockerSettings)
   .settings(
     name := "charlyedu",
     version := "0.1",
@@ -26,3 +28,23 @@ lazy val root = (project in file("."))
       ),
     scalacOptions += "-Ypartial-unification"
   )
+
+lazy val dockerSettings =
+    Seq(
+        packageName in Docker := "theservice",
+        dockerExposedPorts ++= Seq(3000),
+        version in Docker := "0.1.0-RC",
+        dockerBaseImage := "openjdk:8-slim",
+        packageSummary := "The service",
+        packageDescription := "",
+        dockerUpdateLatest := true,
+        publishArtifact := false,
+        mainClass in Compile := Some("io.svranesevic.charlyedu.Server"),
+        javaOptions in Universal ++= Seq(
+            // -J params will be added as jvm parameters
+            "-J-Xmx2048m",
+            "-J-Xms512m",
+            "-J-server"
+        ),
+        publishTo := Some(Resolver.file("devnull", file("/dev/null")))
+    )
