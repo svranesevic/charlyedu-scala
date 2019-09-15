@@ -4,7 +4,7 @@ import cats.effect.{ IO, _ }
 import cats.implicits._
 import io.scalaland.chimney.dsl._
 import io.svranesevic.charlyedu.endpoint.{ ErrorResponse, TemperatureEndpoint, WindSpeedEndpoint }
-import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderInterpreter
+import io.svranesevic.charlyedu.provider.temperature.{ TemperatureProviderAlgebra, TemperatureProviderInterpreter }
 import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderInterpreter
 import org.http4s.implicits._
 import org.http4s.server.Router

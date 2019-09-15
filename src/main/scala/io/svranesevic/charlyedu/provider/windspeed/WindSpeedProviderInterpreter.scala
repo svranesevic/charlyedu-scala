@@ -15,7 +15,7 @@ import tapir.json.circe._
 
 import scala.language.higherKinds
 
-class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(
+private class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(
     implicit F: Async[F],
     cs: ContextShift[F],
     p: Parallel[F]
@@ -65,7 +65,8 @@ class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(
 
 object WindSpeedProviderInterpreter {
 
-  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri, concurrencyLimit: Int) =
+  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri,
+                                                      concurrencyLimit: Int): WindSpeedProviderAlgebra[F, List] =
     new WindSpeedProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit))
 
   import io.circe.generic.semiauto.{ deriveDecoder, deriveEncoder }
