@@ -15,10 +15,11 @@ import tapir.json.circe._
 
 import scala.language.higherKinds
 
-class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(implicit F: Concurrent[F],
-                                                                               P: Parallel[F],
-                                                                               cs: ContextShift[F])
-    extends WindSpeedProviderAlgebra[F, List] {
+class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(
+    implicit F: Concurrent[F],
+    P: Parallel[F],
+    cs: ContextShift[F]
+) extends WindSpeedProviderAlgebra[F, List] {
 
   import WindSpeedProviderInterpreter._
   import io.svranesevic.charlyedu.codec.Implicits._

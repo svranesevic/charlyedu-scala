@@ -15,10 +15,11 @@ import tapir.json.circe._
 
 import scala.language.higherKinds
 
-class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(implicit F: Concurrent[F],
-                                                                                 P: Parallel[F],
-                                                                                 cs: ContextShift[F])
-    extends TemperatureProviderAlgebra[F, List] {
+class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(
+    implicit F: Concurrent[F],
+    P: Parallel[F],
+    cs: ContextShift[F]
+) extends TemperatureProviderAlgebra[F, List] {
 
   import TemperatureProviderInterpreter._
   import io.svranesevic.charlyedu.codec.Implicits._
@@ -38,9 +39,7 @@ class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])
       s <- semaphore
 
       response <- s.withPermit {
-        temperatureRequest
-          .apply(day)
-          .send()
+        temperatureRequest.apply(day).send()
       }
 
       temperature <- response.body match {
