@@ -4,7 +4,7 @@ import java.time.{ LocalDate, LocalTime, ZoneId, ZonedDateTime }
 
 import cats.Parallel
 import cats.effect.concurrent.Semaphore
-import cats.effect.{ Concurrent, ContextShift }
+import cats.effect.{ Async, Concurrent, ContextShift }
 import cats.implicits._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
@@ -16,9 +16,9 @@ import tapir.json.circe._
 import scala.language.higherKinds
 
 class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(
-    implicit F: Concurrent[F],
-    P: Parallel[F],
-    cs: ContextShift[F]
+    implicit F: Async[F],
+    cs: ContextShift[F],
+    p: Parallel[F]
 ) extends WindSpeedProviderAlgebra[F, List] {
 
   import WindSpeedProviderInterpreter._
