@@ -1,3 +1,5 @@
 .idea
+.bloop
+.metals
 target
 project/target

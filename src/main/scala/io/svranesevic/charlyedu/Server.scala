@@ -3,7 +3,8 @@ package io.svranesevic.charlyedu
 import cats.effect.{ IO, _ }
 import cats.implicits._
 import io.scalaland.chimney.dsl._
-import io.svranesevic.charlyedu.endpoint.{ ErrorResponse, TemperatureEndpoint, WindSpeedEndpoint }
+import io.svranesevic.charlyedu.endpoint.WeatherEndpoint.Weather
+import io.svranesevic.charlyedu.endpoint.{ ErrorResponse, TemperatureEndpoint, WeatherEndpoint, WindSpeedEndpoint }
 import io.svranesevic.charlyedu.provider.temperature.{ TemperatureProviderAlgebra, TemperatureProviderInterpreter }
 import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderInterpreter
 import org.http4s.implicits._
@@ -37,7 +38,19 @@ object Server extends IOApp {
       } yield dto.asRight[ErrorResponse]
   }
 
-  private val router = Router("/" -> temperatureRoutes, "/" -> windSpeedRoutes).orNotFound
+  private val weatherRoutes = WeatherEndpoint.endpoint.toRoutes {
+    case (from, to) =>
+      for {
+        windSpeeds   <- windsSpeedProvider.forPeriod(from, to)
+        temperatures <- temperatureProvider.forPeriod(from, to)
+        dto = (windSpeeds zip temperatures).map {
+          case (windSpeed, temperature) =>
+            Weather(windSpeed.north, windSpeed.west, temperature.temp, windSpeed.date)
+        }
+      } yield dto.asRight[ErrorResponse]
+  }
+
+  private val router = Router("/" -> temperatureRoutes, "/" -> windSpeedRoutes, "/" -> weatherRoutes).orNotFound
 
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
