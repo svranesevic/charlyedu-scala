@@ -4,6 +4,10 @@ import cats.effect.{ ExitCode, IO, IOApp }
 import cats.implicits._
 import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderInterpreter
 import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderInterpreter
+import tapir.server.http4s._
+import tapir.swagger.http4s._
+import tapir.openapi.circe.yaml._
+import tapir.docs.openapi._
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -19,8 +23,13 @@ object Server extends IOApp {
     TemperatureProviderInterpreter[IO](config.temperatureService, 10000)
 
   private val routes = new Routes(temperatureProvider, windsSpeedProvider)
+  private val docsAsYaml =
+    routes.all.toOpenAPI("The Service", "1.0").toYaml
 
-  private val router = Router("/" -> routes.all).orNotFound
+  private val router = Router(
+    "/"     -> routes.all.toRoutes,
+    "/docs" -> new SwaggerHttp4s(docsAsYaml).routes
+  ).orNotFound
 
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]

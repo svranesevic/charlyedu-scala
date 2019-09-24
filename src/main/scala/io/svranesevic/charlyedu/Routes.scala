@@ -2,7 +2,7 @@ package io.svranesevic.charlyedu
 
 import java.time.ZonedDateTime
 
-import cats.effect.{ ContextShift, Sync }
+import cats.effect.Sync
 import cats.implicits._
 import cats.{ Foldable, Monad }
 import io.scalaland.chimney.dsl._
@@ -10,9 +10,7 @@ import io.svranesevic.charlyedu.endpoint.WeatherEndpoint.Weather
 import io.svranesevic.charlyedu.endpoint.{ ErrorResponse, TemperatureEndpoint, WeatherEndpoint, WindSpeedEndpoint }
 import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderAlgebra
 import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderAlgebra
-import org.http4s.HttpRoutes
 import tapir.server.ServerEndpoint
-import tapir.server.http4s._
 
 import scala.language.higherKinds
 
@@ -20,12 +18,12 @@ class Routes[F[_]: Monad, G[_]: Monad: Foldable](
     temperatureProvider: TemperatureProviderAlgebra[F, G],
     windsSpeedProvider: WindSpeedProviderAlgebra[F, G]
 )(
-    implicit S: Sync[F],
-    cs: ContextShift[F]
+    implicit S: Sync[F]
 ) {
 
-  val temperatureRoutes
-    : ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[TemperatureEndpoint.Temperature], Nothing, F] =
+  val temperatureRoutes: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[
+    TemperatureEndpoint.Temperature
+  ], Nothing, F] =
     TemperatureEndpoint.endpoint.serverLogic {
       case (from, to) =>
         for {
@@ -63,5 +61,5 @@ class Routes[F[_]: Monad, G[_]: Monad: Foldable](
         } yield dto.asRight[ErrorResponse]
     }
 
-  val all: HttpRoutes[F] = List(temperatureRoutes, windSpeedRoutes, weatherRoutes).toRoutes
+  val all = List(temperatureRoutes, windSpeedRoutes, weatherRoutes)
 }
