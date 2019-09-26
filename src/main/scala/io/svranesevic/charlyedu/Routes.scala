@@ -17,9 +17,7 @@ import scala.language.higherKinds
 class Routes[F[_]: Monad, G[_]: Monad: Foldable](
     temperatureProvider: TemperatureProviderAlgebra[F, G],
     windsSpeedProvider: WindSpeedProviderAlgebra[F, G]
-)(
-    implicit S: Sync[F]
-) {
+)(implicit S: Sync[F]) {
 
   val temperatureRoutes: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[
     TemperatureEndpoint.Temperature
@@ -35,7 +33,7 @@ class Routes[F[_]: Monad, G[_]: Monad: Foldable](
     }
 
   val windSpeedRoutes
-    : ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[WindSpeedEndpoint.WindSpeed], Nothing, F] =
+      : ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[WindSpeedEndpoint.WindSpeed], Nothing, F] =
     WindSpeedEndpoint.endpoint.serverLogic {
       case (from, to) =>
         for {

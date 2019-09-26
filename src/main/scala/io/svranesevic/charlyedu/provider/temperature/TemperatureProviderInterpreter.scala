@@ -17,8 +17,8 @@ import scala.language.higherKinds
 
 private class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphore[F]])(
     implicit F: Async[F],
-    cs: ContextShift[F],
-    p: Parallel[F]
+    CS: ContextShift[F],
+    P: Parallel[F]
 ) extends TemperatureProviderAlgebra[F, List] {
 
   import TemperatureProviderInterpreter._
@@ -44,9 +44,9 @@ private class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaph
         }
 
       temperature <- response.body match {
-        case Left(cause)        => F.raiseError[Temperature](new Throwable(s"Could not decode response body: $cause"))
-        case Right(Left(cause)) => F.raiseError[Temperature](new Throwable(s"Could not obtain temperature: $cause"))
-        case Right(Right(temp)) => F.pure[Temperature](temp)
+        case Left(cause)        => new Throwable(s"Could not decode response body: $cause").raiseError[F, Temperature]
+        case Right(Left(cause)) => new Throwable(s"Could not obtain temperature: $cause").raiseError[F, Temperature]
+        case Right(Right(temp)) => temp.pure[F]
       }
     } yield temperature
 
@@ -64,8 +64,10 @@ private class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaph
 
 object TemperatureProviderInterpreter {
 
-  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri,
-                                                      concurrencyLimit: Int): TemperatureProviderAlgebra[F, List] =
+  def apply[F[_]: Concurrent: ContextShift: Parallel](
+      uri: Uri,
+      concurrencyLimit: Int
+  ): TemperatureProviderAlgebra[F, List] =
     new TemperatureProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit))
 
   import io.circe.generic.semiauto.{ deriveDecoder, deriveEncoder }

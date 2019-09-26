@@ -45,9 +45,9 @@ private class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphor
       }
 
       windSpeed <- response.body match {
-        case Left(cause)        => F.raiseError[WindSpeed](new Throwable(s"Could not decode response body: $cause"))
-        case Right(Left(cause)) => F.raiseError[WindSpeed](new Throwable(s"Could not obtain temperature: $cause"))
-        case Right(Right(temp)) => F.pure[WindSpeed](temp)
+        case Left(cause)        => new Throwable(s"Could not decode response body: $cause").raiseError[F, WindSpeed]
+        case Right(Left(cause)) => new Throwable(s"Could not obtain temperature: $cause").raiseError[F, WindSpeed]
+        case Right(Right(temp)) => temp.pure[F]
       }
     } yield windSpeed
 
@@ -65,8 +65,10 @@ private class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphor
 
 object WindSpeedProviderInterpreter {
 
-  def apply[F[_]: Concurrent: ContextShift: Parallel](uri: Uri,
-                                                      concurrencyLimit: Int): WindSpeedProviderAlgebra[F, List] =
+  def apply[F[_]: Concurrent: ContextShift: Parallel](
+      uri: Uri,
+      concurrencyLimit: Int
+  ): WindSpeedProviderAlgebra[F, List] =
     new WindSpeedProviderInterpreter[F](uri, Semaphore[F](concurrencyLimit))
 
   import io.circe.generic.semiauto.{ deriveDecoder, deriveEncoder }
