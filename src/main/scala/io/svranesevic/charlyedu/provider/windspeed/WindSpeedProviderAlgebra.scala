@@ -8,8 +8,6 @@ trait WindSpeedProviderAlgebra[F[_], G[_]] {
 
   import WindSpeedProviderAlgebra._
 
-  def forDay(day: ZonedDateTime): F[WindSpeed]
-
   def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[G[WindSpeed]]
 }
 

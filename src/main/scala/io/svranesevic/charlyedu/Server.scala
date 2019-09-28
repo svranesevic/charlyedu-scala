@@ -22,12 +22,12 @@ object Server extends IOApp {
   private val temperatureProvider =
     TemperatureProviderInterpreter[IO](config.temperatureService, 10000)
 
-  private val routes = new Routes(temperatureProvider, windsSpeedProvider)
+  private val endpoints = new Endpoints(temperatureProvider, windsSpeedProvider)
   private val docsAsYaml =
-    routes.all.toOpenAPI("The Service", "1.0").toYaml
+    endpoints.all.toOpenAPI("The Service", "1.0").toYaml
 
   private val router = Router(
-    "/"     -> routes.all.toRoutes,
+    "/"     -> endpoints.all.toRoutes,
     "/docs" -> new SwaggerHttp4s(docsAsYaml).routes
   ).orNotFound
 

@@ -14,12 +14,12 @@ import tapir.server.ServerEndpoint
 
 import scala.language.higherKinds
 
-class Routes[F[_]: Monad, G[_]: Monad: Foldable](
+class Endpoints[F[_]: Monad, G[_]: Monad: Foldable](
     temperatureProvider: TemperatureProviderAlgebra[F, G],
     windsSpeedProvider: WindSpeedProviderAlgebra[F, G]
 )(implicit S: Sync[F]) {
 
-  val temperatureRoutes: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[
+  val temperatureEndpoint: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[
     TemperatureEndpoint.Temperature
   ], Nothing, F] =
     TemperatureEndpoint.endpoint.serverLogic {
@@ -32,8 +32,8 @@ class Routes[F[_]: Monad, G[_]: Monad: Foldable](
         } yield dto.asRight[ErrorResponse]
     }
 
-  val windSpeedRoutes
-      : ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[WindSpeedEndpoint.WindSpeed], Nothing, F] =
+  val windSpeedEndpoint
+    : ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[WindSpeedEndpoint.WindSpeed], Nothing, F] =
     WindSpeedEndpoint.endpoint.serverLogic {
       case (from, to) =>
         for {
@@ -44,7 +44,7 @@ class Routes[F[_]: Monad, G[_]: Monad: Foldable](
         } yield dto.asRight[ErrorResponse]
     }
 
-  val weatherRoutes: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[Weather], Nothing, F] =
+  val weatherEndpoint: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[Weather], Nothing, F] =
     WeatherEndpoint.endpoint.serverLogic {
       case (from, to) =>
         for {
@@ -59,5 +59,5 @@ class Routes[F[_]: Monad, G[_]: Monad: Foldable](
         } yield dto.asRight[ErrorResponse]
     }
 
-  val all = List(temperatureRoutes, windSpeedRoutes, weatherRoutes)
+  val all = List(temperatureEndpoint, windSpeedEndpoint, weatherEndpoint)
 }

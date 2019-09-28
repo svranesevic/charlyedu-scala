@@ -9,6 +9,7 @@ import cats.implicits._
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
 import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderAlgebra._
+import io.svranesevic.charlyedu.util.TimeUtil
 import tapir._
 import tapir.client.sttp._
 import tapir.json.circe._
@@ -34,7 +35,7 @@ private class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaph
 
   implicit private val backend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
 
-  override def forDay(day: ZonedDateTime): F[Temperature] =
+  protected def forDay(day: ZonedDateTime): F[Temperature] =
     for {
       s <- semaphore
 
@@ -51,13 +52,7 @@ private class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaph
     } yield temperature
 
   override def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[Temperature]] = {
-    val between =
-      inclusiveFrom.toLocalDate.toEpochDay
-        .until(inclusiveTo.plusDays(1).toLocalDate.toEpochDay)
-        .map(LocalDate.ofEpochDay)
-        .map(ZonedDateTime.of(_, LocalTime.MIDNIGHT, ZoneId.of("UTC")))
-        .toList
-
+    val between = TimeUtil.daysBetween(inclusiveFrom, inclusiveTo)
     between.parTraverse(forDay)
   }
 }

@@ -4,7 +4,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "charlyedu",
     version := "0.1",
-    scalaVersion := "2.12.8",
+    scalaVersion := "2.12.10",
     libraryDependencies ++=
       Seq(
         "org.http4s"             %% "http4s-blaze-server"            % "0.20.10",

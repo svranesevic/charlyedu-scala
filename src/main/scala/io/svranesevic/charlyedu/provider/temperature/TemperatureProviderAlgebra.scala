@@ -8,8 +8,6 @@ trait TemperatureProviderAlgebra[F[_], G[_]] {
 
   import TemperatureProviderAlgebra._
 
-  def forDay(day: ZonedDateTime): F[Temperature]
-
   def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[G[Temperature]]
 }
 
