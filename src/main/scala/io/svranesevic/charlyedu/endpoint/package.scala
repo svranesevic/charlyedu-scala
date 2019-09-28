@@ -1,8 +1,8 @@
 package io.svranesevic.charlyedu
 
-import java.time.{ ZoneId, ZonedDateTime }
+import java.time.ZonedDateTime
 
-import tapir.{ query, EndpointInput, Validator }
+import tapir.{ query, EndpointInput }
 
 package object endpoint {
 
@@ -10,15 +10,7 @@ package object endpoint {
 
   val startDateParameter: EndpointInput.Query[ZonedDateTime] =
     query[ZonedDateTime]("start")
-      .validate(
-        Validator.custom(time => time.isBefore(ZonedDateTime.now(ZoneId.of("UTC"))),
-                         "Date time must not be in the future")
-      )
 
   val endDateParameter: EndpointInput.Query[ZonedDateTime] =
     query[ZonedDateTime]("end")
-      .validate(
-        Validator.custom(time => time.isBefore(ZonedDateTime.now(ZoneId.of("UTC"))),
-                         "Date time must not be in the future")
-      )
 }

@@ -10,4 +10,10 @@ object TimeUtil {
       .map(LocalDate.ofEpochDay)
       .map(ZonedDateTime.of(_, LocalTime.MIDNIGHT, ZoneId.of("UTC")))
       .toList
+
+  def now: ZonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
+
+  def limitToNow(dateTime: ZonedDateTime): ZonedDateTime =
+    if (dateTime.isAfter(now)) now
+    else dateTime
 }
