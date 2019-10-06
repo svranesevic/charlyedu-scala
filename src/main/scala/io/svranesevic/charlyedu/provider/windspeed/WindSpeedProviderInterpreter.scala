@@ -52,10 +52,10 @@ private class WindSpeedProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaphor
       }
     } yield windSpeed
 
-  override def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[WindSpeed]] = {
-    val between = TimeUtil.daysBetween(inclusiveFrom, inclusiveTo)
-    between.parTraverse(forDay)
-  }
+  override def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[WindSpeed]] =
+    TimeUtil
+      .daysBetween(inclusiveFrom, inclusiveTo)
+      .parTraverse(forDay)
 }
 
 object WindSpeedProviderInterpreter {

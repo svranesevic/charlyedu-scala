@@ -51,10 +51,10 @@ private class TemperatureProviderInterpreter[F[_]](uri: Uri, semaphore: F[Semaph
       }
     } yield temperature
 
-  override def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[Temperature]] = {
-    val between = TimeUtil.daysBetween(inclusiveFrom, inclusiveTo)
-    between.parTraverse(forDay)
-  }
+  override def forPeriod(inclusiveFrom: ZonedDateTime, inclusiveTo: ZonedDateTime): F[List[Temperature]] =
+    TimeUtil
+      .daysBetween(inclusiveFrom, inclusiveTo)
+      .parTraverse(forDay)
 }
 
 object TemperatureProviderInterpreter {

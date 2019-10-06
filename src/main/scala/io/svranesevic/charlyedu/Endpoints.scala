@@ -14,11 +14,10 @@ import tapir.server.ServerEndpoint
 
 import scala.language.higherKinds
 
-class Endpoints[F[_]: Monad, G[_]: Monad: Foldable](
+class Endpoints[F[_]: Sync, G[_]: Monad: Foldable](
     temperatureProvider: TemperatureProviderAlgebra[F, G],
     windsSpeedProvider: WindSpeedProviderAlgebra[F, G]
-)(implicit S: Sync[F]) {
-
+) {
   val temperatureEndpoint: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[
     TemperatureEndpoint.Temperature
   ], Nothing, F] =
