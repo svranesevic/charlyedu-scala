@@ -4,13 +4,13 @@ import cats.effect.{ ExitCode, IO, IOApp }
 import cats.implicits._
 import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderInterpreter
 import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderInterpreter
-import tapir.server.http4s._
-import tapir.swagger.http4s._
-import tapir.openapi.circe.yaml._
-import tapir.docs.openapi._
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
+import tapir.docs.openapi._
+import tapir.openapi.circe.yaml._
+import tapir.server.http4s._
+import tapir.swagger.http4s._
 
 object Server extends IOApp {
 
@@ -22,7 +22,7 @@ object Server extends IOApp {
   private val temperatureProvider =
     TemperatureProviderInterpreter[IO](config.temperatureService, 10000)
 
-  private val endpoints = new Endpoints(temperatureProvider, windsSpeedProvider)
+  private val endpoints = Endpoints(temperatureProvider, windsSpeedProvider)
   private val docsAsYaml =
     endpoints.all.toOpenAPI("The Service", "1.0").toYaml
 

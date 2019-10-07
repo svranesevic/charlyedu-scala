@@ -2,7 +2,7 @@ package io.svranesevic.charlyedu
 
 import java.time.ZonedDateTime
 
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.implicits._
 import cats.{ Foldable, Monad }
 import io.scalaland.chimney.dsl._
@@ -10,11 +10,12 @@ import io.svranesevic.charlyedu.endpoint.WeatherEndpoint.Weather
 import io.svranesevic.charlyedu.endpoint.{ ErrorResponse, TemperatureEndpoint, WeatherEndpoint, WindSpeedEndpoint }
 import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderAlgebra
 import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderAlgebra
+import io.svranesevic.charlyedu.util.Syntax._
 import tapir.server.ServerEndpoint
 
 import scala.language.higherKinds
 
-class Endpoints[F[_]: Sync, G[_]: Monad: Foldable](
+case class Endpoints[F[_]: Concurrent, G[_]: Monad: Foldable](
     temperatureProvider: TemperatureProviderAlgebra[F, G],
     windsSpeedProvider: WindSpeedProviderAlgebra[F, G]
 ) {
@@ -47,8 +48,11 @@ class Endpoints[F[_]: Sync, G[_]: Monad: Foldable](
     WeatherEndpoint.endpoint.serverLogic {
       case (from, to) =>
         for {
-          windSpeeds   <- windsSpeedProvider.forPeriod(from, to)
-          temperatures <- temperatureProvider.forPeriod(from, to)
+          windSpeedsF   <- windsSpeedProvider.forPeriod(from, to).start
+          temperaturesF <- temperatureProvider.forPeriod(from, to).start
+
+          windSpeeds   <- windSpeedsF.join
+          temperatures <- temperaturesF.join
 
           dto = (windSpeeds, temperatures)
             .mapN { (windSpeed, temperature) =>
