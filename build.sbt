@@ -7,7 +7,7 @@ val CatsEffectVersion     = "2.0.0"
 val ChimneyVersion        = "0.3.5"
 val LogbackClassicVersion = "1.2.3"
 val SimulacrumVersion     = "1.0.0"
-val ScalaTestVersion      = "3.1.8"
+val ScalaTestVersion      = "3.1.0"
 
 val MacroParadiseVersion = "2.1.1"
 
