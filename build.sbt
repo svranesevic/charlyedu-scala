@@ -1,15 +1,15 @@
-val Http4sVersion         = "0.20.11"
-val TapirVersion          = "0.11.6"
+val Http4sVersion         = "0.20.15"
+val TapirVersion          = "0.11.9"
 val SttpVersion           = "1.7.2"
-val CirceVersion          = "0.12.2"
+val CirceVersion          = "0.12.3"
 val PureConfigVersion     = "0.12.1"
 val CatsEffectVersion     = "2.0.0"
-val ChimneyVersion        = "0.3.3"
+val ChimneyVersion        = "0.3.5"
 val LogbackClassicVersion = "1.2.3"
 val SimulacrumVersion     = "1.0.0"
-val ScalaTestVersion      = "3.0.8"
+val ScalaTestVersion      = "3.1.8"
 
-val MacroParadiseVersion = "2.1.0"
+val MacroParadiseVersion = "2.1.1"
 
 lazy val root = (project in file("."))
   .enablePlugins(JavaAppPackaging, DockerPlugin)
