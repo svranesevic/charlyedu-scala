@@ -16,13 +16,13 @@ object Server extends IOApp {
 
   private val config = Config.build
 
-  private val windsSpeedProvider =
+  private val windsSpeedProviderInterpreter =
     WindSpeedProviderAlgebra.impl[IO](config.windSpeedService, 10000)
 
-  private val temperatureProvider =
+  private val temperatureProviderInterpreter =
     TemperatureProviderAlgebra.impl[IO](config.temperatureService, 10000)
 
-  private val endpoints = Endpoints(temperatureProvider, windsSpeedProvider)
+  private val endpoints = Endpoints(temperatureProviderInterpreter, windsSpeedProviderInterpreter)
   private val docsAsYaml =
     endpoints.all.toOpenAPI("The Service", "1.0").toYaml
 
