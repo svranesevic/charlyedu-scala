@@ -2,8 +2,8 @@ package io.svranesevic.charlyedu
 
 import cats.effect.{ ExitCode, IO, IOApp }
 import cats.implicits._
-import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderInterpreter
-import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderInterpreter
+import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderAlgebra
+import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderAlgebra
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -17,10 +17,10 @@ object Server extends IOApp {
   private val config = Config.build
 
   private val windsSpeedProvider =
-    WindSpeedProviderInterpreter[IO](config.windSpeedService, 10000)
+    WindSpeedProviderAlgebra.impl[IO](config.windSpeedService, 10000)
 
   private val temperatureProvider =
-    TemperatureProviderInterpreter[IO](config.temperatureService, 10000)
+    TemperatureProviderAlgebra.impl[IO](config.temperatureService, 10000)
 
   private val endpoints = Endpoints(temperatureProvider, windsSpeedProvider)
   private val docsAsYaml =

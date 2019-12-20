@@ -13,7 +13,7 @@ object TimeUtil {
 
   def now: ZonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
 
-  def limitToNow(dateTime: ZonedDateTime): ZonedDateTime =
+  def clampFutureDateTimeToNow(dateTime: ZonedDateTime): ZonedDateTime =
     if (dateTime.isAfter(now)) now
     else dateTime
 }

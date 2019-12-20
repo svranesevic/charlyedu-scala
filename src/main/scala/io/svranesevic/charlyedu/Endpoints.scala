@@ -3,8 +3,7 @@ package io.svranesevic.charlyedu
 import java.time.ZonedDateTime
 
 import cats.effect.Concurrent
-import cats.implicits._
-import cats.{ Foldable, Monad }
+import cats.syntax.all._
 import io.scalaland.chimney.dsl._
 import io.svranesevic.charlyedu.endpoint.WeatherEndpoint.Weather
 import io.svranesevic.charlyedu.endpoint.{ ErrorResponse, TemperatureEndpoint, WeatherEndpoint, WindSpeedEndpoint }
@@ -15,10 +14,13 @@ import tapir.server.ServerEndpoint
 
 import scala.language.higherKinds
 
-case class Endpoints[F[_]: Concurrent, G[_]: Monad: Foldable](
-    temperatureProvider: TemperatureProviderAlgebra[F, G],
-    windsSpeedProvider: WindSpeedProviderAlgebra[F, G]
+case class Endpoints[F[_]: Concurrent](
+    temperatureProvider: TemperatureProviderAlgebra[F],
+    windsSpeedProvider: WindSpeedProviderAlgebra[F]
 ) {
+
+  import cats.instances.list._
+
   val temperatureEndpoint: ServerEndpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[
     TemperatureEndpoint.Temperature
   ], Nothing, F] =

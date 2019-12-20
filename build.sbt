@@ -1,3 +1,16 @@
+val Http4sVersion         = "0.20.11"
+val TapirVersion          = "0.11.6"
+val SttpVersion           = "1.7.2"
+val CirceVersion          = "0.12.2"
+val PureConfigVersion     = "0.12.1"
+val CatsEffectVersion     = "2.0.0"
+val ChimneyVersion        = "0.3.3"
+val LogbackClassicVersion = "1.2.3"
+val SimulacrumVersion     = "1.0.0"
+val ScalaTestVersion      = "3.0.8"
+
+val MacroParadiseVersion = "2.1.0"
+
 lazy val root = (project in file("."))
   .enablePlugins(JavaAppPackaging, DockerPlugin)
   .settings(dockerSettings)
@@ -7,29 +20,34 @@ lazy val root = (project in file("."))
     scalaVersion := "2.12.10",
     libraryDependencies ++=
       Seq(
-        "org.http4s"             %% "http4s-blaze-server"            % "0.20.10",
-        "org.http4s"             %% "http4s-blaze-client"            % "0.20.10",
-        "org.http4s"             %% "http4s-circe"                   % "0.20.10",
-        "org.http4s"             %% "http4s-dsl"                     % "0.20.10",
-        "org.typelevel"          %% "cats-effect"                    % "2.0.0",
-        "com.softwaremill.tapir" %% "tapir-http4s-server"            % "0.11.2",
-        "com.softwaremill.tapir" %% "tapir-core"                     % "0.11.2",
-        "com.softwaremill.tapir" %% "tapir-json-circe"               % "0.11.2",
-        "com.softwaremill.tapir" %% "tapir-sttp-client"              % "0.11.2",
-        "com.softwaremill.tapir" %% "tapir-openapi-docs"             % "0.11.2",
-        "com.softwaremill.tapir" %% "tapir-openapi-circe-yaml"       % "0.11.2",
-        "com.softwaremill.tapir" %% "tapir-swagger-ui-http4s"        % "0.11.2",
-        "com.softwaremill.sttp"  %% "core"                           % "1.6.6",
-        "com.softwaremill.sttp"  %% "async-http-client-backend-cats" % "1.6.6",
-        "io.circe"               %% "circe-core"                     % "0.12.1",
-        "io.circe"               %% "circe-generic"                  % "0.12.1",
-        "io.circe"               %% "circe-parser"                   % "0.12.1",
-        "io.scalaland"           %% "chimney"                        % "0.3.2",
-        "com.github.pureconfig"  %% "pureconfig"                     % "0.12.0",
-        "com.github.pureconfig"  %% "pureconfig-sttp"                % "0.12.0",
-        "ch.qos.logback"         % "logback-classic"                 % "1.2.3"
+        "org.http4s"             %% "http4s-blaze-server"            % Http4sVersion,
+        "org.http4s"             %% "http4s-blaze-client"            % Http4sVersion,
+        "org.http4s"             %% "http4s-circe"                   % Http4sVersion,
+        "org.http4s"             %% "http4s-dsl"                     % Http4sVersion,
+        "com.softwaremill.tapir" %% "tapir-http4s-server"            % TapirVersion,
+        "com.softwaremill.tapir" %% "tapir-core"                     % TapirVersion,
+        "com.softwaremill.tapir" %% "tapir-json-circe"               % TapirVersion,
+        "com.softwaremill.tapir" %% "tapir-sttp-client"              % TapirVersion,
+        "com.softwaremill.tapir" %% "tapir-openapi-docs"             % TapirVersion,
+        "com.softwaremill.tapir" %% "tapir-openapi-circe-yaml"       % TapirVersion,
+        "com.softwaremill.tapir" %% "tapir-swagger-ui-http4s"        % TapirVersion,
+        "com.softwaremill.sttp"  %% "core"                           % SttpVersion,
+        "com.softwaremill.sttp"  %% "async-http-client-backend-cats" % SttpVersion,
+        "io.circe"               %% "circe-core"                     % CirceVersion,
+        "io.circe"               %% "circe-generic"                  % CirceVersion,
+        "io.circe"               %% "circe-parser"                   % CirceVersion,
+        "com.github.pureconfig"  %% "pureconfig"                     % PureConfigVersion,
+        "com.github.pureconfig"  %% "pureconfig-sttp"                % PureConfigVersion,
+        "org.typelevel"          %% "cats-effect"                    % CatsEffectVersion,
+        "io.scalaland"           %% "chimney"                        % ChimneyVersion,
+        "ch.qos.logback"         % "logback-classic"                 % LogbackClassicVersion,
+        "org.typelevel"          %% "simulacrum"                     % SimulacrumVersion,
+        "org.scalatest"          %% "scalatest"                      % ScalaTestVersion % Test
       ),
-    scalacOptions += "-Ypartial-unification"
+    libraryDependencies += compilerPlugin(
+      "org.scalamacros" % "paradise" % MacroParadiseVersion cross CrossVersion.full
+    ),
+    scalacOptions ++= Seq("-Ypartial-unification")
   )
 
 lazy val dockerSettings =
