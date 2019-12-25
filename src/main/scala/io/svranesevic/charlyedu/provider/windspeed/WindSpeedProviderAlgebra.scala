@@ -56,7 +56,7 @@ object WindSpeedProviderAlgebra {
     protected def forDay(day: ZonedDateTime): F[WindSpeed] =
       for {
         s        <- semaphore
-        response <- s.withPermit(windSpeedRequest.apply(day).send())
+        response <- s.withPermit(windSpeedRequest(day).send())
 
         windSpeed <- response.body match {
           case Left(cause)        => new Throwable(s"Could not decode response body: $cause").raiseError[F, WindSpeed]

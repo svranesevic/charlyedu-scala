@@ -57,7 +57,7 @@ object TemperatureProviderAlgebra {
       protected def forDay(day: ZonedDateTime): F[Temperature] =
         for {
           s        <- semaphore
-          response <- s.withPermit(temperatureRequest.apply(day).send())
+          response <- s.withPermit(temperatureRequest(day).send())
 
           temperature <- response.body match {
             case Left(cause)        => new Throwable(s"Could not decode response body: $cause").raiseError[F, Temperature]
