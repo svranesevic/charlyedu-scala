@@ -4,6 +4,7 @@ import cats.effect.{ ExitCode, IO, IOApp }
 import cats.implicits._
 import io.svranesevic.charlyedu.provider.temperature.TemperatureProviderAlgebra
 import io.svranesevic.charlyedu.provider.windspeed.WindSpeedProviderAlgebra
+import io.svranesevic.charlyedu.util.TimedOut
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -11,16 +12,25 @@ import tapir.docs.openapi._
 import tapir.openapi.circe.yaml._
 import tapir.server.http4s._
 import tapir.swagger.http4s._
+import cats.tagless.syntax.functorK._
+
+import scala.concurrent.duration._
 
 object Server extends IOApp {
 
   private val config = Config.build
 
+  private val providerTimeout = 1.seconds
+
   private val windsSpeedProviderInterpreter =
-    WindSpeedProviderAlgebra.impl[IO](config.windSpeedService, 10000)
+    WindSpeedProviderAlgebra
+      .impl[IO](config.windSpeedService, 1000)
+      .mapK(TimedOut(providerTimeout))
 
   private val temperatureProviderInterpreter =
-    TemperatureProviderAlgebra.impl[IO](config.temperatureService, 10000)
+    TemperatureProviderAlgebra
+      .impl[IO](config.temperatureService, 1000)
+      .mapK(TimedOut(providerTimeout))
 
   private val endpoints = Endpoints(temperatureProviderInterpreter, windsSpeedProviderInterpreter)
   private val docsAsYaml =

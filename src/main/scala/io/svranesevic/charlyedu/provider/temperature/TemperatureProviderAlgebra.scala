@@ -6,6 +6,7 @@ import cats.Parallel
 import cats.effect.concurrent.Semaphore
 import cats.effect.{ Concurrent, ContextShift }
 import cats.implicits._
+import cats.tagless.autoFunctorK
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
 import io.svranesevic.charlyedu.util.TimeUtil
@@ -14,6 +15,7 @@ import simulacrum.typeclass
 import scala.language.higherKinds
 
 @typeclass
+@autoFunctorK
 trait TemperatureProviderAlgebra[F[_]] {
 
   import TemperatureProviderAlgebra._
@@ -57,7 +59,7 @@ object TemperatureProviderAlgebra {
       protected def forDay(day: ZonedDateTime): F[Temperature] =
         for {
           s        <- semaphore
-          response <- s.withPermit(temperatureRequest(day).send())
+          response <- s.withPermit(temperatureRequest.apply(day).send())
 
           temperature <- response.body match {
             case Left(cause)        => new Throwable(s"Could not decode response body: $cause").raiseError[F, Temperature]

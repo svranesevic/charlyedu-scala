@@ -6,14 +6,16 @@ import cats.Parallel
 import cats.effect.concurrent.Semaphore
 import cats.effect.{ Concurrent, ContextShift }
 import cats.implicits._
-import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
+import cats.tagless.autoFunctorK
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import com.softwaremill.sttp.{ Request, SttpBackend, Uri }
 import io.svranesevic.charlyedu.util.TimeUtil
 import simulacrum.typeclass
 
 import scala.language.higherKinds
 
 @typeclass
+@autoFunctorK
 trait WindSpeedProviderAlgebra[F[_]] {
 
   import WindSpeedProviderAlgebra._
@@ -56,7 +58,7 @@ object WindSpeedProviderAlgebra {
     protected def forDay(day: ZonedDateTime): F[WindSpeed] =
       for {
         s        <- semaphore
-        response <- s.withPermit(windSpeedRequest(day).send())
+        response <- s.withPermit(windSpeedRequest.apply(day).send())
 
         windSpeed <- response.body match {
           case Left(cause)        => new Throwable(s"Could not decode response body: $cause").raiseError[F, WindSpeed]

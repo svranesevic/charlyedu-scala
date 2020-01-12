@@ -14,11 +14,11 @@ object WeatherEndpoint {
   implicit val decoder: Decoder[Weather] = deriveDecoder
   implicit val encoder: Encoder[Weather] = deriveEncoder
 
-  val endpoint: Endpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[Weather], Nothing] =
+  val endpoint: Endpoint[(ZonedDateTime, ZonedDateTime), (Int, ErrorResponse), List[Weather], Nothing] =
     tapirEndpoint.get
       .in("weather")
       .in(startDateParameter)
       .in(endDateParameter)
-      .errorOut(jsonBody[ErrorResponse])
+      .errorOut(statusCode.and(jsonBody[ErrorResponse]))
       .out(jsonBody[List[Weather]])
 }

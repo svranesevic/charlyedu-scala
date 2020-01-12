@@ -1,13 +1,14 @@
-val Http4sVersion         = "0.20.15"
+val Http4sVersion         = "0.20.11"
 val TapirVersion          = "0.11.9"
-val SttpVersion           = "1.7.2"
-val CirceVersion          = "0.12.3"
+val SttpVersion           = "1.6.6"
+val CirceVersion          = "0.12.2"
 val PureConfigVersion     = "0.12.1"
 val CatsEffectVersion     = "2.0.0"
-val ChimneyVersion        = "0.3.5"
+val CatsTaglessVersion    = "0.10"
+val ChimneyVersion        = "0.3.3"
 val LogbackClassicVersion = "1.2.3"
 val SimulacrumVersion     = "1.0.0"
-val ScalaTestVersion      = "3.1.0"
+val ScalaTestVersion      = "3.0.8"
 
 val MacroParadiseVersion = "2.1.1"
 
@@ -39,6 +40,7 @@ lazy val root = (project in file("."))
         "com.github.pureconfig"  %% "pureconfig"                     % PureConfigVersion,
         "com.github.pureconfig"  %% "pureconfig-sttp"                % PureConfigVersion,
         "org.typelevel"          %% "cats-effect"                    % CatsEffectVersion,
+        "org.typelevel"          %% "cats-tagless-macros"            % CatsTaglessVersion,
         "io.scalaland"           %% "chimney"                        % ChimneyVersion,
         "ch.qos.logback"         % "logback-classic"                 % LogbackClassicVersion,
         "org.typelevel"          %% "simulacrum"                     % SimulacrumVersion,

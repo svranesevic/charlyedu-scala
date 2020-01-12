@@ -14,11 +14,11 @@ object WindSpeedEndpoint {
   implicit val decoder: Decoder[WindSpeed] = deriveDecoder
   implicit val encoder: Encoder[WindSpeed] = deriveEncoder
 
-  val endpoint: Endpoint[(ZonedDateTime, ZonedDateTime), ErrorResponse, List[WindSpeed], Nothing] =
+  val endpoint: Endpoint[(ZonedDateTime, ZonedDateTime), (Int, ErrorResponse), List[WindSpeed], Nothing] =
     tapirEndpoint.get
       .in("speeds")
       .in(startDateParameter)
       .in(endDateParameter)
-      .errorOut(jsonBody[ErrorResponse])
+      .errorOut(statusCode.and(jsonBody[ErrorResponse]))
       .out(jsonBody[List[WindSpeed]])
 }
