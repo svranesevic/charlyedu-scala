@@ -1,3 +1,5 @@
+![Scala CI](https://github.com/svranesevic/charlyedu-scala/workflows/Scala%20CI/badge.svg?branch=master)
+
 # PlusPeter Back End Tech Test
 
 The purpose of this test is to assess your ability to create a simple service which consumes data from some backing services and returns a result by composing that data together.
